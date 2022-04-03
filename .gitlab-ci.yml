@@ -1,0 +1,43 @@
+#
+variables:
+  VCSA01_URL: "https://vcsa01.mikemomo.com"
+  VCSA02_URL: "https://vcsa02.mikemomo.com"
+
+stages:
+  - validate
+  - build
+  - library-sync
+
+packer-validate:
+  stage: validate
+  tags:
+    - hsof
+  script: command -v packer
+
+## HSOF
+build_hsof_centos7_base_template:
+  stage: build
+  only:
+    - master
+  tags:
+    - beta
+  variables:
+    ORIGINAL_JOB_NAME: build_centos7_base_template
+  before_script:
+    - echo "prepare ${ORIGINAL_JOB_NAME} env"
+  after_script:
+    - echo "clean up ${ORIGINAL_JOB_NAME} env"
+  script:
+    - |
+      /usr/bin/packer init builds/linux/${DISTRIBUTION}
+      /usr/bin/packer build -force -var "build_password=$BUILD_PASS" -var "vsphere_password=$VCSA_PASS" \
+        -var-file="config/${PROFILE}/vsphere.pkrvars.hcl" \
+        -var-file="config/${PROFILE}/build.pkrvars.hcl" \
+        -var-file="config/${PROFILE}/common.pkrvars.hcl" \
+        -var-file="config/${PROFILE}/rhsm.pkrvars.hcl" \
+        builds/linux/${DISTRIBUTION}
+  parallel:
+    matrix:
+      - DISTRIBUTION: ['centos7-base']
+        PROFILE: ['dev-base', 'prod-base']
+
