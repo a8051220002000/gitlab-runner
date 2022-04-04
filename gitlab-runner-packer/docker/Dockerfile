@@ -1,5 +1,5 @@
 FROM centos:8
-LABEL maintainer="123456"
+LABEL maintainer="jimmy.chen"
 ENV PACKER_VERSION=1.7.6
 ENV GOVC_VERSION=v0.27.0
 ENV GOVC_INSECURE=true
